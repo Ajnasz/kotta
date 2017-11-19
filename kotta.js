@@ -2,23 +2,68 @@
 	const KOTTA_CONTAINER_ID = 'KottaImg';
 	const CIRCLE_SIZE = 6;
 	const LINE_GAP = 15;
-	const canvas = new fabric.Canvas(KOTTA_CONTAINER_ID);
 	const BASE_LINE_MIN = -0.5;
 	const BASE_LINE_MAX = 4;
+	const FONT_SIZE = 16;
+	const NOTE_LINE_SIZE = LINE_GAP * 3;
+	const LINE_INDENT = 10;
+	const FIRST_NOTE_INDENT = 20;
+
+	// const allNotes = [
+	// 	// -4, -3.5, -3, -2.5, -2,
+	// 	[-1.5, 'A'], [-1, 'G'], [-0.5, 'F'],
+	// 	[0, 'E'], [0.5, 'D'], [1, 'C'], [1.5, 'H'], [2, 'A'], [2.5, 'G'], [3, 'F'], [3.5, 'E'],
+	// 	[4, 'D'], [4.5, 'C'], [5, 'H'], [5.5, 'A'], [6, 'G'], [6.5, 'F'], [7, 'E'],
+	// ];
+
+	const notesByName = {
+		A1: [-1.5, 'A'],
+		G1: [-1, 'G'],
+		F1: [-0.5, 'F'],
+		E1: [0, 'E'],
+		D1: [0.5, 'D'],
+		C1: [1, 'C'],
+		H1: [1.5, 'H'],
+		A2: [2, 'A'],
+		G2: [2.5, 'G'],
+		F2: [3, 'F'],
+		E2: [3.5, 'E'],
+		D2: [4, 'D'],
+		C2: [4.5, 'C'],
+		H2: [5, 'H'],
+		A3: [5.5, 'A'],
+		G3: [6, 'G'],
+		F3: [6.5, 'F'],
+		E3: [7, 'E'],
+	};
+
+	const selectedNotes = [
+		notesByName.F1,
+		notesByName.D1,
+		notesByName.G2,
+		notesByName.A2,
+		notesByName.F2,
+		notesByName.A3,
+		notesByName.G3,
+		notesByName.F3,
+		notesByName.E3
+	];
+
+	const contentWidth = parseInt(window.getComputedStyle(document.querySelector('main')).width, 10);
 
 	function getRandomIntInclusive(min, max) {
 		min = Math.ceil(min);
 		max = Math.floor(max);
-		return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive 
+		return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive
 	}
 
-	function isBaseHang(pos) {
+	function isBaseNote(pos) {
 		return pos > BASE_LINE_MIN && pos < BASE_LINE_MAX;
 	}
 
-	function createHang([pos, name], index) {
+	function createNote([pos, name], index) {
 		const top = (pos + 6) * LINE_GAP + LINE_GAP / 2 - CIRCLE_SIZE;
-		const left = 10 + index * CIRCLE_SIZE * 4;
+		const left = FIRST_NOTE_INDENT + index * CIRCLE_SIZE * 4;
 		const output = [];
 
 		output.push(new fabric.Circle({
@@ -28,26 +73,27 @@
 			left,
 		}));
 		output.push(new fabric.Text(name, {
-			top: top + 18,
+			fill: '#666',
+			top: top + FONT_SIZE,
 			left,
-			fontSize: 18
-		}))
+			fontSize: FONT_SIZE
+		}));
 
 		if (pos > 1.5) {
-			output.push(new fabric.Line([90, LINE_GAP * 3, 90, 0], {
+			output.push(new fabric.Line([90, NOTE_LINE_SIZE, 90, 0], {
 				top: top + CIRCLE_SIZE - LINE_GAP * 3,
 				left: left + CIRCLE_SIZE * 2,
 				stroke: 'black',
-			}))
+			}));
 		} else {
-			output.push(new fabric.Line([90, LINE_GAP * 3, 90, 0], {
+			output.push(new fabric.Line([90, NOTE_LINE_SIZE, 90, 0], {
 				top: top + CIRCLE_SIZE,
 				left,
 				stroke: 'black',
-			}))
+			}));
 		}
 
-		if (isBaseHang(pos)) {
+		if (isBaseNote(pos)) {
 			return output;
 		}
 
@@ -74,57 +120,33 @@
 		return output.concat(lines);
 	}
 
-	const lines = Array.from(new Array(5)).map((_, index) => {
-		return new fabric.Line([0, 0, 1500, 0], {
-			left: 10,
-			top: (index + 6) * LINE_GAP,
-			stroke: 'black',
+	window.addEventListener('DOMContentLoaded', () => {
+		document.querySelector('main').appendChild((() => {
+			const canvas = document.createElement('canvas');
+			canvas.id = KOTTA_CONTAINER_ID;
+			canvas.width = contentWidth;
+			canvas.height = 240;
+			return canvas;
+		})());
+
+		const canvas = new fabric.Canvas(KOTTA_CONTAINER_ID);
+
+		const lines = Array.from(new Array(5)).map((_, index) => {
+			return new fabric.Line([0, 0, contentWidth - LINE_INDENT * 2, 0], {
+				left: LINE_INDENT,
+				top: (index + 6) * LINE_GAP,
+				stroke: 'black',
+			});
 		});
+
+		canvas.add(...lines);
+
+		const numberOfNotes = Math.round((contentWidth - LINE_INDENT * 2 - FIRST_NOTE_INDENT) / (CIRCLE_SIZE * 4));
+		const toDraw = Array.from(new Array(numberOfNotes))
+			.map(() => selectedNotes[getRandomIntInclusive(0, selectedNotes.length - 1)])
+			.map(createNote)
+			.reduce((o, h) => o.concat(h), []);
+		canvas.add(...toDraw);
+		canvas.renderAll();
 	});
-
-	canvas.add(...lines);
-
-	const allHangok = [
-		// -4, -3.5, -3, -2.5, -2,
-		[-1.5, 'A'], [-1, 'G'], [-0.5, 'F'],
-		[0, 'E'], [0.5, 'D'], [1, 'C'], [1.5, 'H'], [2, 'A'], [2.5, 'G'], [3, 'F'], [3.5, 'E'],
-		[4, 'D'], [4.5, 'C'], [5, 'H'], [5.5, 'A'], [6, 'G'], [6.5, 'F'], [7, 'E'],
-	];
-
-	const hangokByName = {
-		A1: [-1.5, 'A'],
-		G1: [-1, 'G'],
-		F1: [-0.5, 'F'],
-		E1: [0, 'E'],
-		D1: [0.5, 'D'],
-		C1: [1, 'C'],
-		H1: [1.5, 'H'],
-		A2: [2, 'A'],
-		G2: [2.5, 'G'],
-		F2: [3, 'F'],
-		E2: [3.5, 'E'],
-		D2: [4, 'D'],
-		C2: [4.5, 'C'],
-		H2: [5, 'H'],
-		A3: [5.5, 'A'],
-		G3: [6, 'G'],
-		F3: [6.5, 'F'],
-		E3: [7, 'E'],
-	}
-
-	const selectedHangok = [
-		hangokByName.F1,
-		hangokByName.D1,
-		hangokByName.G2,
-		hangokByName.A2,
-		hangokByName.F2,
-		hangokByName.A3,
-		hangokByName.G3,
-		hangokByName.F3,
-		hangokByName.E3
-	];
-
-	const toDraw = Array.from(new Array(62)).map(() => selectedHangok[getRandomIntInclusive(0, selectedHangok.length - 1)]).map(createHang).reduce((o, h) => o.concat(h), []);
-	canvas.add(...toDraw);
-	canvas.renderAll();
 }(window.fabric));
