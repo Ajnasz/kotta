@@ -2,17 +2,21 @@
 	const KOTTA_CONTAINER_ID = 'KottaImg';
 	const CIRCLE_SIZE = 6;
 	const LINE_GAP = 15;
-	const BASE_LINE_MIN = -0.5;
-	const BASE_LINE_MAX = 4.5;
+	const BASE_LINE_MIN = 0;
+	const BASE_LINE_MAX = 8;
 	const FONT_SIZE = 16;
 	const NOTE_LINE_SIZE = LINE_GAP * 3;
 	const LINE_INDENT = 10;
 	const FIRST_NOTE_INDENT = 20;
+	const SHOW_TEXT = false;
+
+	const CIRCLE_LINE_SWAP = 3;
+
 	var ctx;
 
 	function text(text, { top, left, fontSize, fill }) {
-		ctx.font = `${fontSize}px serif`;
 		const fillStyle = ctx.fillStyle;
+		ctx.font = `${fontSize}px serif`;
 		ctx.fillStyle = fill;
 		ctx.fillText(text, left, top);
 		ctx.fillStyle = fillStyle;
@@ -24,11 +28,19 @@
 		ctx.fill();
 	}
 
-	function line([x1, y1, x2, y2]) {
+	function line([x1, y1, x2, y2], { stroke }) {
+		const strokeStyle = ctx.strokeStyle;
+		const lineWidth = ctx.lineWidth;
+		ctx.strokeStyle = stroke;
+		ctx.lineWidth = 1;
+
 		ctx.beginPath();
 		ctx.moveTo(x1, y1);
 		ctx.lineTo(x2, y2);
 		ctx.stroke();
+
+		ctx.strokeStyle = strokeStyle;
+		ctx.lineWidth = lineWidth;
 	}
 
 	// const allNotes = [
@@ -39,36 +51,50 @@
 	// ];
 
 	const notesByName = {
-		A1: [-1.5, 'A'],
-		G1: [-1, 'G'],
-		F1: [-0.5, 'F'],
-		E1: [0, 'E'],
-		D1: [0.5, 'D'],
-		C1: [1, 'C'],
-		H1: [1.5, 'H'],
-		A2: [2, 'A'],
-		G2: [2.5, 'G'],
-		F2: [3, 'F'],
-		E2: [3.5, 'E'],
-		D2: [4, 'D'],
-		C2: [4.5, 'C'],
-		H2: [5, 'H'],
-		A3: [5.5, 'A'],
-		G3: [6, 'G'],
-		F3: [6.5, 'F'],
-		E3: [7, 'E'],
+		F0: [15, 'F0'],
+		E0: [14, 'E0'],
+		D0: [13, 'D0'],
+		C0: [12, 'C0'],
+		H0: [11, 'H0'],
+		A1: [10, 'A1'],
+		G1: [9, 'G1'],
+		F1: [8, 'F1'],
+		E1: [7, 'E1'],
+		D1: [6, 'D1'],
+		C1: [5, 'C1'],
+		H1: [4, 'H1'],
+		A2: [3, 'A2'],
+		G2: [2, 'G2'],
+		F2: [1, 'F2'],
+		E2: [0, 'E2'],
+		D2: [-1, 'D2'],
+		C2: [-2, 'C2'],
+		H2: [-3, 'H2'],
+		A3: [-4, 'A3'],
+		G3: [-5, 'G3'],
+		F3: [-6, 'F3'],
+		E3: [-7, 'E3'],
 	};
 
 	const selectedNotes = [
+		// notesByName.F0,
+		// notesByName.E0,
+		// notesByName.D0,
+		// notesByName.C0,
+		// notesByName.H0,
+		// notesByName.A1,
+		// notesByName.G1,
 		notesByName.F1,
 		notesByName.D1,
-		notesByName.G2,
 		notesByName.A2,
+		notesByName.G2,
 		notesByName.F2,
+		// notesByName.C2,
+		notesByName.H2,
 		notesByName.A3,
 		notesByName.G3,
 		notesByName.F3,
-		notesByName.E3
+		notesByName.E3,
 	];
 
 	const contentWidth = parseInt(window.getComputedStyle(document.querySelector('main')).width, 10);
@@ -83,16 +109,18 @@
 		return pos > BASE_LINE_MIN && pos < BASE_LINE_MAX;
 	}
 
-	function isBelowBase(pos) {
+	function isHigh(pos) {
 		return pos > BASE_LINE_MAX;
 	}
 
-	function isAboveBase(pos) {
+	function isLow(pos) {
 		return pos < BASE_LINE_MIN;
 	}
 
+	const BASE_LINE = (LINE_GAP / 2 * (15 + 4) + (CIRCLE_SIZE) / 2 - 1);
+
 	function createNote([pos, name], index) {
-		const top = (pos + 6) * LINE_GAP + LINE_GAP / 2 - CIRCLE_SIZE;
+		const top = BASE_LINE - pos * LINE_GAP / 2 - 1;
 		const left = FIRST_NOTE_INDENT + index * CIRCLE_SIZE * 4;
 		const output = [];
 
@@ -103,22 +131,24 @@
 			left,
 			selectable: false,
 		}));
-		output.push(text(name, {
-			fill: '#666',
-			top: top + FONT_SIZE + CIRCLE_SIZE + 6,
-			left,
-			fontSize: FONT_SIZE,
-			selectable: false,
-		}));
 
-		if (pos > 1.5) {
+		if (SHOW_TEXT) {
+			output.push(text(name.replace(/[0-9]/, ''), {
+				fill: '#666',
+				top: top + FONT_SIZE + CIRCLE_SIZE + 6,
+				left,
+				fontSize: FONT_SIZE,
+				selectable: false,
+			}));
+		}
+
+		if (pos <= CIRCLE_LINE_SWAP) {
 			const x1 = left + CIRCLE_SIZE * 2;
 			const x2 = x1;
 			const y1 = top + CIRCLE_SIZE - LINE_GAP * 3;
 			const y2 = y1 + NOTE_LINE_SIZE;
 			output.push(line([x1, y1, x2, y2], {
 				stroke: 'black',
-				selectable: false,
 			}));
 		} else {
 			const x1 = left;
@@ -127,7 +157,6 @@
 			const y2 = y1 - NOTE_LINE_SIZE;
 			output.push(line([x1, y1, x2, y2], {
 				stroke: 'black',
-				selectable: false,
 			}));
 		}
 
@@ -137,28 +166,26 @@
 
 		let lines = [];
 
-		let linePos = -4;
-
-		while (-4 <= linePos && 7 >= linePos) {
-			linePos += 0.5;
-
-			if ((linePos % 1) !== 0 ||
-				isBaseNote(linePos) ||
-				(pos < 0 && (linePos <= pos || linePos > 3.5)) ||
-				(pos > 3.5 && (linePos < 0 ||  linePos >= pos + 1))
-			) {
+		let linePos = notesByName.F0[0];
+		while (notesByName.F0[0] >= linePos && notesByName.E3[0] <= linePos) {
+			linePos -= 1;
+			if (isBaseNote(linePos)) {
+				continue;
+			}
+			if (linePos % 2 !== 0) {
 				continue;
 			}
 
-			const x1 = left - CIRCLE_SIZE / 2;
-			const x2 = x1 + CIRCLE_SIZE * 3;
-			const y1 = (linePos + 6) * LINE_GAP + LINE_GAP / 2 - CIRCLE_SIZE - (LINE_GAP / 2 - CIRCLE_SIZE);
-			const y2 = y1;
+			if ((isHigh(linePos) && pos >= linePos) || (isLow(linePos) && pos <= linePos)) {
 
-			lines = lines.concat(line([x1, y1, x2, y2], {
-				stroke: 'black',
-				selectable: false,
-			}));
+				const x1 = left - CIRCLE_SIZE / 2;
+				const x2 = x1 + CIRCLE_SIZE * 3;
+				const y = BASE_LINE - linePos * LINE_GAP / 2 - 1 + CIRCLE_SIZE;
+
+				line([x1, y, x2, y], {
+					stroke: 'black',
+				});
+			}
 		}
 
 		return output.concat(lines);
@@ -183,7 +210,6 @@
 
 			return line([x1, y, x2, y], {
 				stroke: 'black',
-				selectable: false,
 			});
 		});
 
@@ -192,4 +218,5 @@
 			.map(() => selectedNotes[getRandomIntInclusive(0, selectedNotes.length - 1)])
 			.map(createNote);
 	});
+
 }());
