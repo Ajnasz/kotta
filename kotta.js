@@ -100,8 +100,6 @@
 		notesByName.E3,
 	];
 
-	const contentWidth = parseInt(window.getComputedStyle(document.querySelector('main')).width, 10);
-
 	function getRandomIntInclusive(min, max) {
 		min = Math.ceil(min);
 		max = Math.floor(max);
@@ -194,17 +192,16 @@
 		return output.concat(lines);
 	}
 
-	window.addEventListener('DOMContentLoaded', () => {
-		document.querySelector('main').appendChild((() => {
-			const canvas = document.createElement('canvas');
-			canvas.id = KOTTA_CONTAINER_ID;
-			canvas.width = contentWidth;
-			canvas.height = 240;
-			return canvas;
-		})());
+	function generate() {
+		const contentWidth = parseInt(window.getComputedStyle(document.querySelector('main')).width, 10);
 
+		const canvas = document.getElementById(KOTTA_CONTAINER_ID);
 
-		ctx = document.getElementById(KOTTA_CONTAINER_ID).getContext('2d');
+		canvas.width = contentWidth;
+		canvas.height = 240;
+
+		ctx = canvas.getContext('2d');
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 		Array.from(new Array(5)).map((_, index) => {
 			const x1 = LINE_INDENT;
@@ -220,6 +217,18 @@
 		Array.from(new Array(numberOfNotes))
 			.map(() => selectedNotes[getRandomIntInclusive(0, selectedNotes.length - 1)])
 			.map(createNote);
-	});
+	}
+
+	function main() {
+		document.querySelector('main').appendChild((() => {
+			const canvas = document.createElement('canvas');
+			canvas.id = KOTTA_CONTAINER_ID;
+			return canvas;
+		})());
+		generate();
+		document.querySelector('#Refresh').addEventListener('click', generate);
+	}
+
+	window.addEventListener('DOMContentLoaded', main);
 
 }());
