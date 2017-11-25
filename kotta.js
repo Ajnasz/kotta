@@ -82,7 +82,7 @@
 		// notesByName.D0,
 		// notesByName.C0,
 		// notesByName.H0,
-		// notesByName.A1,
+		notesByName.A1,
 		// notesByName.G1,
 		notesByName.F1,
 		// notesByName.E1,
