@@ -3,3 +3,58 @@
 	justify-content: space-between;
 	align-items: center;
 }
+
+.notes-container {
+	display: grid;
+	grid-template-rows: auto;
+	grid-template-columns: repeat(4, 25%);
+}
+.others-container {
+	display: grid;
+	grid-template-rows: auto;
+	grid-template-columns: repeat(2, 50%);
+}
+
+@media (min-width: 600px) {
+	.notes-container {
+		grid-template-columns: repeat(5, 20%);
+	}
+}
+
+@media (min-width: 900px) {
+	.notes-container {
+		grid-template-columns: repeat(8, 12.5%);
+	}
+}
+
+@media (min-width: 1200px) {
+	.notes-container {
+		grid-template-columns: repeat(10, 10%);
+	}
+}
+
+.note-label {
+	text-align: center;
+	padding: 10px;
+	border: 1px solid #fff;
+	font-size: 30px;
+	font-weight: bold;
+
+	background-color: #eee;
+	color: #333;
+
+	transition: background-color 0.3s, color 0.3s;
+}
+.note-label {
+	cursor: pointer;
+}
+
+input[type="checkbox"] {
+	display: none;
+}
+
+input:checked + .note-label {
+	background-color: #2C6EA1;
+	color: #fff;
+}
+
